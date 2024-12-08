@@ -43,11 +43,11 @@ function Navbar() {
           {/* Home Icon on the left */}
           <div className="flex-none">
             <Link to="/" className="flex items-center text-gray-800 transition hover:text-gray-500/75">
-              <img
+              {/* <img
                 src="../../static/images/home.jpg" 
                 alt="Home"
                 className="w-6 h-6" // Adjust size as needed
-              />
+              /> */}
               <div className="w-6 h-6 bg-cover bg-center bg-[url('../../static/images/home.jpg')]" />
             </Link>
           </div>

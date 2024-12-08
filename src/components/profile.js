@@ -149,7 +149,7 @@ function Profile() {
   return (
     <div className="relative w-full h-screen">
       <Navbar />
-      <div className="mt-18 bg-cover h-[80vh] bg-center relative" style={{ backgroundImage: 'url("../../static/images/profile_bg.jpg")' }}>
+      <div className="mt-18 bg-cover h-[80vh] bg-center relative bg-[url('../../static/images/profile_bg.jpg')]">
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40">
           <div className="relative">
             <img
