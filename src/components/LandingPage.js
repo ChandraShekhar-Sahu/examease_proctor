@@ -59,8 +59,7 @@ function LandingPage() {
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-blue-100 text-blue-500 rounded-full">
                     {/* <img src="../../static/images/stock.png" alt="Real-Time Monitoring" className="w-10 h-10" /> */}
-                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/stock.png')]">
-                </div>
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/stock.png')]" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Real-Time Monitoring</h3>
                 <p className="mt-4 text-gray-600">
@@ -105,6 +104,7 @@ function LandingPage() {
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-yellow-100 text-yellow-500 rounded-full">
                     {/* <img src="../../static/images/sms.png" alt="Instant Notifications" className="w-10 h-10" /> */}
                     <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/sms.png')]" />
+                </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Instant Notifications</h3>
                 <p className="mt-4 text-gray-600">
                     Alerts for suspicious activities and important updates.
@@ -122,7 +122,6 @@ function LandingPage() {
                 </p>
             </div>
         </div>
-    </div>
     </div>
 </section>
 
