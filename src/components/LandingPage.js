@@ -18,7 +18,7 @@ function LandingPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="pt-14">
+            <div className="pt-12">
             {/* Hero Section */}
             <section className="relative h-[90vh] w-full bg-[url('../../static/images/HeroSection.jpg')] bg-cover bg-center">
                 <div className=" absolute inset-0 bg-black bg-opacity-50 flex items-center">

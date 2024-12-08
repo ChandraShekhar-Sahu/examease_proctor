@@ -17,6 +17,7 @@ const CreateExam = () => {
   const [examDuration, setExamDuration] = useState('');
   const [userID, setUserID] = useState(null);
   const [reviewMode, setReviewMode] = useState(false);
+  const [questionType, setQuestionType] = useState('mcq'); // 'mcq' or 'text'
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -31,20 +32,21 @@ const CreateExam = () => {
   }, []);
 
   const addQuestion = () => {
-    if (questionText && options.every(opt => opt.trim() !== '') && correctOption >= 0 && correctOption < 4) {
+    if (questionText && (questionType === 'mcq' ? options.every(opt => opt.trim() !== '') : true)) {
       setQuestions([
         ...questions,
         {
           questionText,
-          options,
-          correctOption: parseInt(correctOption, 10),
+          options: questionType === 'mcq' ? options : null, // If it's a text-based question, options are not used
+          correctOption: questionType === 'mcq' ? parseInt(correctOption, 10) : null, // Correct option is used only for MCQs
+          questionType,
         }
       ]);
       setQuestionText('');
       setOptions(['', '', '', '']);
       setCorrectOption(0);
     } else {
-      alert('Please complete all question fields and select a valid correct option (0-3).');
+      alert('Please complete all question fields.');
     }
   };
 
@@ -62,7 +64,7 @@ const CreateExam = () => {
         questions: questions.reduce((acc, question, index) => {
           acc[`questionID${index + 1}`] = question;
           return acc;
-        }, {})
+        }, {}),
       }).then(() => {
         alert('Exam created successfully!');
         setExamTitle('');
@@ -83,132 +85,160 @@ const CreateExam = () => {
   const handleEditQuestion = (index) => {
     const questionToEdit = questions[index];
     setQuestionText(questionToEdit.questionText);
-    setOptions(questionToEdit.options);
-    setCorrectOption(questionToEdit.correctOption);
+    setOptions(questionToEdit.options || []);
+    setCorrectOption(questionToEdit.correctOption || 0);
+    setQuestionType(questionToEdit.questionType || 'mcq');
     setQuestions(questions.filter((_, i) => i !== index));
     setReviewMode(false);
   };
 
   return (
     <>
-    <Navbar />
-    <div className="min-h-screen bg-gradient-to-r from-teal-500 to-cyan-500 p-8">
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        {reviewMode ? (
-          <div>
-            <h2 className="text-xl font-semibold text-teal-700 mb-4">Review Questions</h2>
-            {questions.map((question, index) => (
-              <div key={index} className="mb-4 p-4 border rounded-lg">
-                <p><strong>Q{index + 1}:</strong> {question.questionText}</p>
-                {question.options.map((option, i) => (
-                  <p key={i} className={i === question.correctOption ? 'text-green-600' : ''}>
-                    Option {i + 1}: {option}
-                  </p>
-                ))}
-                <button
-                  onClick={() => handleEditQuestion(index)}
-                  className="text-blue-500 underline mt-2"
-                >
-                  Edit Question
-                </button>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-r from-teal-500 to-cyan-500 p-8">
+        <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+          {reviewMode ? (
+            <div>
+              <h2 className="text-xl font-semibold text-teal-700 mb-4">Review Questions</h2>
+              {questions.map((question, index) => (
+                <div key={index} className="mb-4 p-4 border rounded-lg">
+                  <p><strong>Q{index + 1}:</strong> {question.questionText}</p>
+                  {question.questionType === 'mcq' && question.options && question.options.map((option, i) => (
+                    <p key={i} className={i === question.correctOption ? 'text-green-600' : ''}>
+                      Option {i + 1}: {option}
+                    </p>
+                  ))}
+                  {question.questionType === 'text' && (
+                    <p className="text-gray-600">Text-based answer: User can write code in this field.</p>
+                  )}
+                  <button
+                    onClick={() => handleEditQuestion(index)}
+                    className="text-blue-500 underline mt-2"
+                  >
+                    Edit Question
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure all details are correct?')) handleCreateExam();
+                }}
+                className="w-full bg-green-500 text-white py-2 rounded-lg shadow-lg hover:bg-green-600 focus:outline-none"
+              >
+                Submit Exam
+              </button>
+              <button
+                onClick={() => setReviewMode(false)}
+                className="w-full mt-2 bg-gray-500 text-white py-2 rounded-lg shadow-lg hover:bg-gray-600 focus:outline-none"
+              >
+                Go Back
+              </button>
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-3xl font-bold text-center text-teal-800">Create Exam</h1>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={examTitle}
+                  onChange={(e) => setExamTitle(e.target.value)}
+                  placeholder="Exam Title"
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
+                <textarea
+                  value={examDescription}
+                  onChange={(e) => setExamDescription(e.target.value)}
+                  placeholder="Exam Description"
+                  className="w-full p-4 border rounded-lg mb-4"
+                ></textarea>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
+                <input
+                  type="number"
+                  value={examDuration}
+                  onChange={(e) => setExamDuration(e.target.value)}
+                  placeholder="Exam Duration (in minutes)"
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
               </div>
-            ))}
-            <button
-              onClick={() => {
-                if (window.confirm('Are you sure all details are correct?')) handleCreateExam();
-              }}
-              className="w-full bg-green-500 text-white py-2 rounded-lg shadow-lg hover:bg-green-600 focus:outline-none"
-            >
-              Submit Exam
-            </button>
-            <button
-              onClick={() => setReviewMode(false)}
-              className="w-full mt-2 bg-gray-500 text-white py-2 rounded-lg shadow-lg hover:bg-gray-600 focus:outline-none"
-            >
-              Go Back
-            </button>
-          </div>
-        ) : (
-          <div>
-            <h1 className="text-3xl font-bold text-center text-teal-800">Create Exam</h1>
-            <div className="mb-4">
-              <input
-                type="text"
-                value={examTitle}
-                onChange={(e) => setExamTitle(e.target.value)}
-                placeholder="Exam Title"
-                className="w-full p-4 border rounded-lg mb-4"
-              />
+              <h2 className="text-xl font-semibold text-teal-700 mb-2">Add Questions</h2>
               <textarea
-                value={examDescription}
-                onChange={(e) => setExamDescription(e.target.value)}
-                placeholder="Exam Description"
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                placeholder="Question Text"
                 className="w-full p-4 border rounded-lg mb-4"
               ></textarea>
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-4 border rounded-lg mb-4"
-              />
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-4 border rounded-lg mb-4"
-              />
-              <input
-                type="number"
-                value={examDuration}
-                onChange={(e) => setExamDuration(e.target.value)}
-                placeholder="Exam Duration (in minutes)"
-                className="w-full p-4 border rounded-lg mb-4"
-              />
+              <div>
+                <button
+                  onClick={() => setQuestionType('mcq')}
+                  className={`w-full p-4 mb-4 ${questionType === 'mcq' ? 'bg-teal-600' : 'bg-teal-400'} text-white`}
+                >
+                  MCQ Question
+                </button>
+                <button
+                  onClick={() => setQuestionType('text')}
+                  className={`w-full p-4 mb-4 ${questionType === 'text' ? 'bg-teal-600' : 'bg-teal-400'} text-white`}
+                >
+                  Text-based Question
+                </button>
+              </div>
+              {questionType === 'mcq' && options.map((option, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  value={option}
+                  onChange={(e) => {
+                    const newOptions = [...options];
+                    newOptions[index] = e.target.value;
+                    setOptions(newOptions);
+                  }}
+                  placeholder={`Option ${index + 1}`}
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
+              ))}
+              {questionType === 'mcq' && (
+                <input
+                  type="number"
+                  value={correctOption}
+                  onChange={(e) => setCorrectOption(Number(e.target.value))}
+                  placeholder="Correct Option (0-3)"
+                  className="w-full p-4 border rounded-lg mb-4"
+                />
+              )}
+              {questionType === 'text' && (
+                <textarea
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  placeholder="Enter text-based answer"
+                  className="w-full p-4 border rounded-lg mb-4"
+                ></textarea>
+              )}
+              <button
+                onClick={addQuestion}
+                className="w-full bg-teal-600 text-white py-2 rounded-lg shadow-lg hover:bg-teal-700 focus:outline-none mb-4"
+              >
+                Add Question
+              </button>
+              <button
+                onClick={() => setReviewMode(true)}
+                className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-lg hover:bg-blue-600 focus:outline-none"
+              >
+                Review Questions
+              </button>
             </div>
-            <h2 className="text-xl font-semibold text-teal-700 mb-2">Add Questions</h2>
-            <textarea
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="Question Text"
-              className="w-full p-4 border rounded-lg mb-4"
-            ></textarea>
-            {options.map((option, index) => (
-              <input
-                key={index}
-                type="text"
-                value={option}
-                onChange={(e) => {
-                  const newOptions = [...options];
-                  newOptions[index] = e.target.value;
-                  setOptions(newOptions);
-                }}
-                placeholder={`Option ${index + 1}`}
-                className="w-full p-4 border rounded-lg mb-4"
-              />
-            ))}
-            <input
-              type="number"
-              value={correctOption}
-              onChange={(e) => setCorrectOption(Number(e.target.value))}
-              placeholder="Correct Option (0-3)"
-              className="w-full p-4 border rounded-lg mb-4"
-            />
-            <button
-              onClick={addQuestion}
-              className="w-full bg-teal-600 text-white py-2 rounded-lg shadow-lg hover:bg-teal-700 focus:outline-none mb-4"
-            >
-              Add Question
-            </button>
-            <button
-              onClick={() => setReviewMode(true)}
-              className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-lg hover:bg-blue-600 focus:outline-none"
-            >
-              Review Questions
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 };
