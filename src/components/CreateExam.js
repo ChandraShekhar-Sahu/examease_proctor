@@ -178,7 +178,7 @@ const CreateExam = () => {
                 placeholder="Question Text"
                 className="w-full p-4 border rounded-lg mb-4"
               ></textarea>
-              <div>
+              <div className="flex justify-between">
                 <button
                   onClick={() => setQuestionType('mcq')}
                   className={`w-full p-4 mb-4 ${questionType === 'mcq' ? 'bg-teal-600' : 'bg-teal-400'} text-white`}
