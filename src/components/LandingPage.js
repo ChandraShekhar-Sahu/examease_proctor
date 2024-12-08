@@ -88,7 +88,7 @@ function LandingPage() {
             {/* Feature 4 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-purple-100 text-purple-500 rounded-full">
-                    <img src="/static/images/face-detection.png" alt="Biometric Authentication" className="w-10 h-10" />
+                    <img src="../../static/images/face-detection.png" alt="Biometric Authentication" className="w-10 h-10" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Biometric Authentication</h3>
                 <p className="mt-4 text-gray-600">
@@ -98,7 +98,7 @@ function LandingPage() {
             {/* Feature 5 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-yellow-100 text-yellow-500 rounded-full">
-                    <img src="../../static/images/sms.png" alt="Instant Notifications" className="w-10 h-10" />
+                    <img src="../../static/images/HeroSection.jpg" alt="Instant Notifications" className="w-10 h-10" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Instant Notifications</h3>
                 <p className="mt-4 text-gray-600">
