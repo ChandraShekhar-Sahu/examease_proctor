@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { database, auth } from './firebase';
 import { ref, set } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import Navbar from './header';
 
 const CreateExam = () => {
@@ -17,9 +17,10 @@ const CreateExam = () => {
   const [examDuration, setExamDuration] = useState('');
   const [userID, setUserID] = useState(null);
   const [reviewMode, setReviewMode] = useState(false);
-  const [questionType, setQuestionType] = useState('mcq'); // 'mcq' or 'text'
+  const [isMCQ, setIsMCQ] = useState(true);
+  const [hasTextBased, setHasTextBased] = useState(false);
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -32,26 +33,57 @@ const CreateExam = () => {
   }, []);
 
   const addQuestion = () => {
-    if (questionText && (questionType === 'mcq' ? options.every(opt => opt.trim() !== '') : true)) {
-      setQuestions([
-        ...questions,
-        {
-          questionText,
-          options: questionType === 'mcq' ? options : null, // If it's a text-based question, options are not used
-          correctOption: questionType === 'mcq' ? parseInt(correctOption, 10) : null, // Correct option is used only for MCQs
-          questionType,
-        }
-      ]);
-      setQuestionText('');
-      setOptions(['', '', '', '']);
-      setCorrectOption(0);
+    if (isMCQ) {
+      if (
+        questionText &&
+        options.every((opt) => opt.trim() !== '') &&
+        correctOption >= 0 &&
+        correctOption < 4
+      ) {
+        setQuestions([
+          ...questions,
+          {
+            type: 'mcq',
+            questionText,
+            options,
+            correctOption: parseInt(correctOption, 10),
+          },
+        ]);
+        setQuestionText('');
+        setOptions(['', '', '', '']);
+        setCorrectOption(0);
+      } else {
+        alert(
+          'Please complete all MCQ fields and select a valid correct option (0-3).'
+        );
+      }
     } else {
-      alert('Please complete all question fields.');
+      if (questionText) {
+        setQuestions([
+          ...questions,
+          {
+            type: 'text-based',
+            questionText,
+          },
+        ]);
+        setHasTextBased(true);
+        setQuestionText('');
+      } else {
+        alert('Please enter a question for the text-based format.');
+      }
     }
   };
 
   const handleCreateExam = () => {
-    if (examTitle && examDescription && startTime && endTime && examDuration && questions.length > 0 && userID) {
+    if (
+      examTitle &&
+      examDescription &&
+      startTime &&
+      endTime &&
+      examDuration &&
+      questions.length > 0 &&
+      userID
+    ) {
       const examRef = ref(database, `exams/${userID}/${examTitle}`);
       set(examRef, {
         title: examTitle,
@@ -61,22 +93,26 @@ const CreateExam = () => {
         startTime,
         endTime,
         duration: examDuration,
+        mcq: !hasTextBased,
         questions: questions.reduce((acc, question, index) => {
           acc[`questionID${index + 1}`] = question;
           return acc;
         }, {}),
-      }).then(() => {
-        alert('Exam created successfully!');
-        setExamTitle('');
-        setExamDescription('');
-        setStartTime('');
-        setEndTime('');
-        setExamDuration('');
-        setQuestions([]);
-        navigate('/'); // Redirect to home page
-      }).catch((error) => {
-        console.error('Error creating exam:', error);
-      });
+      })
+        .then(() => {
+          alert('Exam created successfully!');
+          setExamTitle('');
+          setExamDescription('');
+          setStartTime('');
+          setEndTime('');
+          setExamDuration('');
+          setQuestions([]);
+          setHasTextBased(false);
+          navigate('/');
+        })
+        .catch((error) => {
+          console.error('Error creating exam:', error);
+        });
     } else {
       alert('Please fill out all fields and add at least one question.');
     }
@@ -85,9 +121,10 @@ const CreateExam = () => {
   const handleEditQuestion = (index) => {
     const questionToEdit = questions[index];
     setQuestionText(questionToEdit.questionText);
-    setOptions(questionToEdit.options || []);
-    setCorrectOption(questionToEdit.correctOption || 0);
-    setQuestionType(questionToEdit.questionType || 'mcq');
+    if (questionToEdit.type === 'mcq') {
+      setOptions(questionToEdit.options);
+      setCorrectOption(questionToEdit.correctOption);
+    }
     setQuestions(questions.filter((_, i) => i !== index));
     setReviewMode(false);
   };
@@ -99,18 +136,25 @@ const CreateExam = () => {
         <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
           {reviewMode ? (
             <div>
-              <h2 className="text-xl font-semibold text-teal-700 mb-4">Review Questions</h2>
+              <h2 className="text-xl font-semibold text-teal-700 mb-4">
+                Review Questions
+              </h2>
               {questions.map((question, index) => (
                 <div key={index} className="mb-4 p-4 border rounded-lg">
-                  <p><strong>Q{index + 1}:</strong> {question.questionText}</p>
-                  {question.questionType === 'mcq' && question.options && question.options.map((option, i) => (
-                    <p key={i} className={i === question.correctOption ? 'text-green-600' : ''}>
-                      Option {i + 1}: {option}
-                    </p>
-                  ))}
-                  {question.questionType === 'text' && (
-                    <p className="text-gray-600">Text-based answer: User can write code in this field.</p>
-                  )}
+                  <p>
+                    <strong>Q{index + 1}:</strong> {question.questionText}
+                  </p>
+                  {question.type === 'mcq' &&
+                    question.options.map((option, i) => (
+                      <p
+                        key={i}
+                        className={
+                          i === question.correctOption ? 'text-green-600' : ''
+                        }
+                      >
+                        Option {i + 1}: {option}
+                      </p>
+                    ))}
                   <button
                     onClick={() => handleEditQuestion(index)}
                     className="text-blue-500 underline mt-2"
@@ -121,7 +165,8 @@ const CreateExam = () => {
               ))}
               <button
                 onClick={() => {
-                  if (window.confirm('Are you sure all details are correct?')) handleCreateExam();
+                  if (window.confirm('Are you sure all details are correct?'))
+                    handleCreateExam();
                 }}
                 className="w-full bg-green-500 text-white py-2 rounded-lg shadow-lg hover:bg-green-600 focus:outline-none"
               >
@@ -136,7 +181,9 @@ const CreateExam = () => {
             </div>
           ) : (
             <div>
-              <h1 className="text-3xl font-bold text-center text-teal-800">Create Exam</h1>
+              <h1 className="text-3xl font-bold text-center text-teal-800">
+                Create Exam
+              </h1>
               <div className="mb-4">
                 <input
                   type="text"
@@ -171,42 +218,53 @@ const CreateExam = () => {
                   className="w-full p-4 border rounded-lg mb-4"
                 />
               </div>
-              <h2 className="text-xl font-semibold text-teal-700 mb-2">Add Questions</h2>
+              <h2 className="text-xl font-semibold text-teal-700 mb-2">
+                Add Questions
+              </h2>
+              <div className="mb-4">
+                <button
+                  onClick={() => setIsMCQ(true)}
+                  className={`py-2 px-4 rounded-lg mr-2 ${
+                    isMCQ
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  MCQ
+                </button>
+                <button
+                  onClick={() => setIsMCQ(false)}
+                  className={`py-2 px-4 rounded-lg ${
+                    !isMCQ
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  Text-Based
+                </button>
+              </div>
               <textarea
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder="Question Text"
                 className="w-full p-4 border rounded-lg mb-4"
               ></textarea>
-              <div className="flex justify-between">
-                <button
-                  onClick={() => setQuestionType('mcq')}
-                  className={`w-full p-4 mb-4 ${questionType === 'mcq' ? 'bg-teal-600' : 'bg-teal-400'} text-white`}
-                >
-                  MCQ Question
-                </button>
-                <button
-                  onClick={() => setQuestionType('text')}
-                  className={`w-full p-4 mb-4 ${questionType === 'text' ? 'bg-teal-600' : 'bg-teal-400'} text-white`}
-                >
-                  Text-based Question
-                </button>
-              </div>
-              {questionType === 'mcq' && options.map((option, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={option}
-                  onChange={(e) => {
-                    const newOptions = [...options];
-                    newOptions[index] = e.target.value;
-                    setOptions(newOptions);
-                  }}
-                  placeholder={`Option ${index + 1}`}
-                  className="w-full p-4 border rounded-lg mb-4"
-                />
-              ))}
-              {questionType === 'mcq' && (
+              {isMCQ &&
+                options.map((option, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...options];
+                      newOptions[index] = e.target.value;
+                      setOptions(newOptions);
+                    }}
+                    placeholder={`Option ${index + 1}`}
+                    className="w-full p-4 border rounded-lg mb-4"
+                  />
+                ))}
+              {isMCQ && (
                 <input
                   type="number"
                   value={correctOption}
@@ -214,14 +272,6 @@ const CreateExam = () => {
                   placeholder="Correct Option (0-3)"
                   className="w-full p-4 border rounded-lg mb-4"
                 />
-              )}
-              {questionType === 'text' && (
-                <textarea
-                  value={questionText}
-                  onChange={(e) => setQuestionText(e.target.value)}
-                  placeholder="Enter text-based answer"
-                  className="w-full p-4 border rounded-lg mb-4"
-                ></textarea>
               )}
               <button
                 onClick={addQuestion}

@@ -300,7 +300,6 @@ const TakeExam = () => {
   };
   
   
- 
   const handleEndExam = () => {
     let totalScore = 0;
     Object.keys(examData).forEach((questionId) => {
