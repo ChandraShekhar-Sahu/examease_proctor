@@ -58,7 +58,9 @@ function LandingPage() {
             {/* Feature 1 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-blue-100 text-blue-500 rounded-full">
-                    <img src="../../static/images/stock.png" alt="Real-Time Monitoring" className="w-10 h-10" />
+                    {/* <img src="../../static/images/stock.png" alt="Real-Time Monitoring" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/stock.png')]">
+                </div>
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Real-Time Monitoring</h3>
                 <p className="mt-4 text-gray-600">
@@ -68,7 +70,8 @@ function LandingPage() {
             {/* Feature 2 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-green-100 text-green-500 rounded-full">
-                    <img src="../../static/images/dashboard.png" alt="Advanced Analytics" className="w-10 h-10" />
+                    {/* <img src="../../static/images/dashboard.png" alt="Advanced Analytics" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/dashboard.png')]" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Advanced Analytics</h3>
                 <p className="mt-4 text-gray-600">
@@ -78,7 +81,8 @@ function LandingPage() {
             {/* Feature 3 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-                    <img src="../../static/images/security.png" alt="Secure Exam Interface" className="w-10 h-10" />
+                    {/* <img src="../../static/images/security.png" alt="Secure Exam Interface" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/security.png')]" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Secure Exam Interface</h3>
                 <p className="mt-4 text-gray-600">
@@ -88,7 +92,8 @@ function LandingPage() {
             {/* Feature 4 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-purple-100 text-purple-500 rounded-full">
-                    <img src="../../static/images/face-detection.png" alt="Biometric Authentication" className="w-10 h-10" />
+                    {/* <img src="../../static/images/face-detection.png" alt="Biometric Authentication" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/face-detection.png')]" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Biometric Authentication</h3>
                 <p className="mt-4 text-gray-600">
@@ -98,8 +103,8 @@ function LandingPage() {
             {/* Feature 5 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-yellow-100 text-yellow-500 rounded-full">
-                    <img src="../../static/images/HeroSection.jpg" alt="Instant Notifications" className="w-10 h-10" />
-                </div>
+                    {/* <img src="../../static/images/sms.png" alt="Instant Notifications" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/sms.png')]" />
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Instant Notifications</h3>
                 <p className="mt-4 text-gray-600">
                     Alerts for suspicious activities and important updates.
@@ -108,9 +113,8 @@ function LandingPage() {
             {/* Feature 6 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-teal-100 text-teal-500 rounded-full">
-                <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/report.png')]">
-                </div>
-
+                    {/* <img src="../../static/images/report.png" alt="Comprehensive Reporting" className="w-10 h-10" /> */}
+                    <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/report.png')]" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Comprehensive Reporting</h3>
                 <p className="mt-4 text-gray-600">
