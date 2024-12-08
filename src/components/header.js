@@ -48,6 +48,7 @@ function Navbar() {
                 alt="Home"
                 className="w-6 h-6" // Adjust size as needed
               />
+              <div className="w-6 h-6 bg-cover bg-center bg-[url('../../static/images/home.jpg')]" />
             </Link>
           </div>
 
