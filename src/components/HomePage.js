@@ -10,7 +10,7 @@ import TakeExam from "./TakeExam";
 import LandingPage from "./LandingPage";
 import Exams from "./Exams";
 import ProtectedRoute from "./ProtectedRoute";
-import AboutUs from "./aboutUs";
+import AboutUs from "./AboutUs";
 
 
 export default class HomePage extends Component {
