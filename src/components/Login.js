@@ -95,7 +95,8 @@ function Login() {
             <div className="mt-4">
               <SignInwithGoogle />
             </div>
-            <h2 className="flex items-end justify-end">If you do not have a Account  &nbsp;<a href="/register" className="text-blue-700"> Register</a></h2>
+            <h2 className="flex items-end justify-end">If you do not have a Account  &nbsp;
+              <a href="/register" className="text-blue-700"> Register</a></h2>
            
           </div>
         </div>
