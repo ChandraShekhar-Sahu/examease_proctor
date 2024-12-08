@@ -108,8 +108,8 @@ function LandingPage() {
             {/* Feature 6 */}
             <div className="relative p-8 bg-white shadow-lg rounded-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center bg-teal-100 text-teal-500 rounded-full">
-                <section className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/report.png')]">
-                </section>
+                <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/report.png')]">
+                </div>
 
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-gray-800">Comprehensive Reporting</h3>
