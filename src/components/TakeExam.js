@@ -300,7 +300,7 @@ const TakeExam = () => {
   };
   
   
-  const handleEndExam = () => {
+  const handleEndExam = async () => {
     let totalScore = 0;
     Object.keys(examData).forEach((questionId) => {
       const question = examData[questionId];
@@ -312,6 +312,13 @@ const TakeExam = () => {
     setScore(totalScore);
     setExamEnded(true);
     localStorage.removeItem('userAnswers');
+    try {
+      await storeUserDetails(totalScore);
+      alert(`Exam ended. Your score: ${totalScore}`);
+      window.location.href = '/exams';
+    } catch (error) {
+      console.error('Error ending exam:', error);
+    }
 
     // Prompt the score and redirect
     setTimeout(() => {
