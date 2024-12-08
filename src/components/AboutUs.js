@@ -79,7 +79,7 @@ function AboutUs() {
                   alt="Efforts"
                   className="rounded-lg shadow-lg w-full h-80 object-cover"
                 /> */}
-                <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/effort.jpg')]" />
+                <div className="w-full h-80 bg-cover bg-center rounded-lg object-cover bg-[url('../../static/images/effort.jpg')]" />
               </div>
               <div className="flex flex-col justify-center">
                 <p className="text-lg text-gray-600">
