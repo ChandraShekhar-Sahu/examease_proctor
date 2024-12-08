@@ -23,7 +23,7 @@ function AboutUs() {
                 alt="Community"
                 className="rounded-lg shadow-lg w-full h-80 object-cover"
               /> */}
-              <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/community.jpg')]" />
+              <div className="w-full h-80 bg-cover bg-center rounded-lg object-cover bg-[url('../../static/images/community.jpg')]" />
             </div>
             <div className="flex flex-col justify-center">
               <h3 className="text-3xl font-bold text-gray-800">Our Community Work Culture</h3>
@@ -106,7 +106,7 @@ function AboutUs() {
                 alt="Innovation"
                 className="rounded-lg shadow-lg mb-6 w-full"
               /> */}
-              <div className="w-10 h-10 bg-cover bg-center rounded-full bg-[url('../../static/images/innovation.jpg')]" />
+              <div className="w-full h-80 bg-cover bg-center rounded-lg object-cover bg-[url('../../static/images/innovation.jpg')]" />
               <h4 className="text-3xl font-semibold text-gray-800">Empowering Education Through Technology</h4>
               <p className="mt-4 text-lg text-gray-600">
                 Our mission is to bridge the gap between traditional examination methods and the future of digital assessment with integrity, security, and ease.
