@@ -20,7 +20,7 @@ export default class HomePage extends Component {
 
     render() {
         return (
-            <Router basename="/examease-proctor-4gs4">
+            <Router >
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
