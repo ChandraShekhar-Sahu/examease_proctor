@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase"; // Replace with your actual Firebase config file path
 import { Link } from "react-router-dom"; // Import Link from react-router-dom for navigation
+import { div } from "framer-motion/client";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,8 +39,8 @@ function Navbar() {
 
   return (
     <header className="bg-neutral-200 backdrop-blur-lg fixed top-0 left-0 right-0 z-50">
-      <div className="mx-auto max-w-screen-xl md:px-4 lg:px-8">
-        <div className="flex h-16 items-center">
+      <div className="mx-auto max-w-screen-xl md:px-4 lg:px-10">
+        <div className="flex h-12 items-center">
           {/* Home Icon on the left */}
           <div className="flex-none">
             <Link to="/" className="flex items-center text-gray-800 transition hover:text-gray-500/75">
@@ -53,7 +54,9 @@ function Navbar() {
           </div>
 
           {/* Center Navigation Links */}
+          
           <div className="flex-1 flex justify-center">
+            {isAuthenticated ? (
             <nav aria-label="Global">
               <ul className="flex items-center gap-4 text-base sm:text-sm md:text-lg">
                 <li>
@@ -64,15 +67,7 @@ function Navbar() {
                     About
                   </a>
                 </li>
-                <li>
-                  <a
-                    className="text-gray-800 transition hover:text-gray-500/75"
-                    onClick={() => scrollToSection('feature-card')}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    Features
-                  </a>
-                </li>
+
                 <li>
                   <a
                     className="text-gray-800 transition hover:text-gray-500/75"
@@ -89,10 +84,15 @@ function Navbar() {
                 </li>
               </ul>
             </nav>
+            ):(
+            <div></div>
+          )
+          }
           </div>
+          
 
           {/* Dropdown Menu on the right */}
-          <div className="relative flex-none">
+          <div className="relative flex-none items-center">
             <button
               type="button"
               className="overflow-hidden rounded-full border border-gray-300 shadow-inner"
@@ -102,7 +102,7 @@ function Navbar() {
               <img
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScRBB4s6BbGlsq2E2LQJ4QzCofMmWxtfsWsg&s"
                 alt="Profile"
-                className="size-12 object-cover"
+                className="size-8 object-cover"
               />
             </button>
 

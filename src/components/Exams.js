@@ -1,45 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { database } from './firebase'; // Import Firebase Database
 import { ref, onValue } from 'firebase/database';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast'; // Import toast library
 import Navbar from './header';
 import Footer from './footer';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const Exams = () => {
   const [exams, setExams] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch exams from Firebase Database
-  useEffect(() => {
-    const examsRef = ref(database, 'exams');
-    onValue(examsRef, (snapshot) => {
-      const data = snapshot.val();
-      const examsList = [];
+useEffect(() => {
+  const examsRef = ref(database, "exams");
 
-      if (data) {
-        for (let userId in data) {
-          for (let examId in data[userId]) {
-            examsList.push({
-              id: examId,
-              userId,
-              ...data[userId][examId]
-            });
-          }
-        }
-        setExams(examsList);
-      } else {
-        console.error('No exams available.');
-      }
-    });
-  }, []);
+  onValue(examsRef, (snapshot) => {
+    const data = snapshot.val();
+    const examsList = [];
+
+    if (data) {
+      Object.keys(data).forEach((examTitle) => {
+        examsList.push({
+          id: examTitle,  // this is your examId
+          ...data[examTitle],
+        });
+      });
+
+      setExams(examsList);
+    } else {
+      setExams([]);
+      console.log("No exams available.");
+    }
+  });
+}, []);
+
+
+
+
+
+  //pre-exam me jane ke liye
+
+  const handleTakeExamClick = (exam) => {
+    if (!isExamAccessible(exam.startTime, exam.endTime)) {
+      toast.error(getTimeLeftMessage(exam.startTime) || 'Exam is not yet available.');
+      return false;
+    }
+    
+    // Store the intended exam path in localStorage
+    localStorage.setItem("examRedirectPath", `/takeexam/${exam.id}`);
+    
+    // Redirect to exam rules and camera page
+    navigate("/pre-exam");
+    return true;
+  };
+
+  
 
   // Function to check if the exam is within the allowed time range
   const isExamAccessible = (startTime, endTime) => {
     const now = new Date();
+    // console.log(now);
+    
     const start = new Date(startTime);
     const end = new Date(endTime);
+    // console.log("start: ",start);
+    // console.log("end: ", end);
     return now >= start && now <= end;
   };
 
@@ -57,13 +85,13 @@ const Exams = () => {
     return '';
   };
 
-  const handleTakeExamClick = (startTime, examId) => {
-    if (!isExamAccessible(startTime, new Date().toISOString())) {
-      toast.error(getTimeLeftMessage(startTime) || 'Exam is not yet available.');
-      return false;
-    }
-    return true;
-  };
+  // const handleTakeExamClick = (startTime, examId) => {
+  //   if (!isExamAccessible(startTime, new Date().toISOString())) {
+  //     toast.error(getTimeLeftMessage(startTime) || 'Exam is not yet available.');
+  //     return false;
+  //   }
+  //   return true;
+  // };
 
   return (
     <div className="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 min-h-screen ">
@@ -87,19 +115,18 @@ const Exams = () => {
               <p className="text-gray-700 mb-4">{exam.description}</p>
               <p className="text-gray-600"><strong>Start Time:</strong> {new Date(exam.startTime).toLocaleString()}</p>
               <p className="text-gray-600 mb-4"><strong>End Time:</strong> {new Date(exam.endTime).toLocaleString()}</p>
-
+              
               <div className="flex justify-between items-center">
-                <Link
-                  to={isExamAccessible(exam.startTime, exam.endTime) ? `/takeexam/${exam.userId}/${exam.id}` : '#'}
-                  onClick={() => handleTakeExamClick(exam.startTime, exam.id)}
+              <button
+                  onClick={() => handleTakeExamClick(exam)}
                   className={`py-2 px-6 rounded-lg text-white text-lg font-medium shadow-md transition-all duration-300 ${
                     isExamAccessible(exam.startTime, exam.endTime)
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  Take Exam
-                </Link>
+              Give Exam
+                </button>
                 <div className="text-sm text-gray-500">{isExamAccessible(exam.startTime, exam.endTime) ? 'Ready to take' : 'Coming soon'}</div>
               </div>
             </div>

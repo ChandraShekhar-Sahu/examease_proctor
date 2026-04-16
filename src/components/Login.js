@@ -65,7 +65,7 @@ function Login() {
           <div className="max-w-md mx-auto">
             <h1 className="text-2xl font-semibold">Login</h1>
             <form onSubmit={handleSubmit}>
-              <div className="mb-4">
+              <div className="mb-4 mt-4">
                 <input
                   type="email"
                   placeholder="Email"

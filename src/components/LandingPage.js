@@ -1,8 +1,11 @@
 import Navbar from "./header";
 import Footer from "./footer";
 import React, { useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 
 function LandingPage() {
+
+     const navigate = useNavigate();
 
     const howItWorksRef = useRef(null);  // Reference for the "How It Works" section
 
@@ -31,8 +34,9 @@ function LandingPage() {
                         </p>
                         <div className="mt-6 flex space-x-4">
                             <button 
-                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-                                href="/profile">
+                                className="px-6 py-3 bg-blue-400 hover:bg-blue-700 text-black font-semibold rounded-lg"
+                                onClick={() => navigate('/profile')}
+                                >
                                 Take a Tour
                             </button>
                             <button 

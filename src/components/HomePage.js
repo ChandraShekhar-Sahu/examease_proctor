@@ -11,7 +11,7 @@ import LandingPage from "./LandingPage";
 import Exams from "./Exams";
 import ProtectedRoute from "./ProtectedRoute";
 import AboutUs from "./AboutUs";
-
+import ExamRulesCamera from "./ExamRulesCamera";
 
 export default class HomePage extends Component {
     constructor(props) {
@@ -28,10 +28,12 @@ export default class HomePage extends Component {
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/exams" element={<ProtectedRoute><Exams /></ProtectedRoute>} />
               <Route path="/create-exam" element={<ProtectedRoute><CreateExam /></ProtectedRoute>} />
-              <Route path="/takeexam/:userId/:examId" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />
+              <Route path="/takeexam/:examId" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />
               <Route path="/register" element={<Register />} />
+              <Route path="/pre-exam" element={<ProtectedRoute><ExamRulesCamera /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/notify" element={<Notify />} />
+              
               
             </Routes>
           </Router>

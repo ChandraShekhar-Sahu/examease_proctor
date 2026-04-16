@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { database, auth } from './firebase';
-import { ref, set } from 'firebase/database';
+import { ref, set, push } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './header';
@@ -19,8 +19,8 @@ const CreateExam = () => {
   const [reviewMode, setReviewMode] = useState(false);
   const [isMCQ, setIsMCQ] = useState(true);
   const [hasTextBased, setHasTextBased] = useState(false);
-
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -73,22 +73,25 @@ const CreateExam = () => {
       }
     }
   };
+const handleCreateExam = async () => {
+  if (
+    examTitle &&
+    examDescription &&
+    startTime &&
+    endTime &&
+    examDuration &&
+    questions.length > 0 &&
+    userID
+  ) {
+    try {
+      // ✅ 1. Generate Firebase auto ID
+      const examRef = push(ref(database, "exams"));
+      const examId = examRef.key;
 
-  const handleCreateExam = () => {
-    if (
-      examTitle &&
-      examDescription &&
-      startTime &&
-      endTime &&
-      examDuration &&
-      questions.length > 0 &&
-      userID
-    ) {
-      const examRef = ref(database, `exams/${userID}/${examTitle}`);
-      set(examRef, {
+      // ✅ 2. Save exam data
+      await set(examRef, {
         title: examTitle,
         description: examDescription,
-        creatorID: userID,
         createdAt: new Date().toISOString(),
         startTime,
         endTime,
@@ -98,25 +101,41 @@ const CreateExam = () => {
           acc[`questionID${index + 1}`] = question;
           return acc;
         }, {}),
-      })
-        .then(() => {
-          alert('Exam created successfully!');
-          setExamTitle('');
-          setExamDescription('');
-          setStartTime('');
-          setEndTime('');
-          setExamDuration('');
-          setQuestions([]);
-          setHasTextBased(false);
-          navigate('/');
-        })
-        .catch((error) => {
-          console.error('Error creating exam:', error);
-        });
-    } else {
-      alert('Please fill out all fields and add at least one question.');
+      });
+
+      // ✅ 3. Save ownership
+      await set(ref(database, `examOwnership/${examId}`), {
+        owner: userID,
+      });
+
+      // ✅ 4. Save reference under user
+      await set(
+        ref(database, `user_created_exams/${userID}/${examId}`),
+        true
+      );
+
+      // ✅ 5. Reset form
+      setExamTitle("");
+      setExamDescription("");
+      setStartTime("");
+      setEndTime("");
+      setExamDuration("");
+      setQuestions([]);
+      setHasTextBased(false);
+
+      alert("Exam created successfully!");
+
+      // ✅ 6. Navigate to exam page
+      navigate(`/exams`);
+
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      alert("Something went wrong while creating the exam.");
     }
-  };
+  } else {
+    alert("Please fill out all fields and add at least one question.");
+  }
+};
 
   const handleEditQuestion = (index) => {
     const questionToEdit = questions[index];
@@ -128,6 +147,9 @@ const CreateExam = () => {
     setQuestions(questions.filter((_, i) => i !== index));
     setReviewMode(false);
   };
+
+
+
 
   return (
     <>

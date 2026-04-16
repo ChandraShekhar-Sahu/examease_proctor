@@ -14,63 +14,80 @@ const Dashboard = () => {
   const [results, setResults] = useState([]);
   const [candidates, setCandidates] = useState([]); // State for candidates
 
+  const [selectedExamId, setSelectedExamId] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [showCandidatesModal, setShowCandidatesModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [candidateDetails, setCandidateDetails] = useState(null);
+  const [reportData, setReportData] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+
 
   // Function to fetch exams created by the user
-  const fetchExamsCreatedByUser = async (userId) => {
-    try {
-      const examsRef = ref(database, `exams/${userId}`);
-      const snapshot = await get(examsRef);
+const fetchExamsCreatedByUser = async (userId) => {
+  try {
+    const createdRef = ref(database, `user_created_exams/${userId}`);
+    const snapshot = await get(createdRef);
 
-      if (snapshot.exists()) {
-        const examsData = snapshot.val();
+    if (!snapshot.exists()) return [];
 
-        // Extract necessary data from each sub-object
-        const examsList = Object.entries(examsData).map(([key, value]) => ({
-          id: key,
-          title: value.title,
-          description: value.description, // Assuming `description` exists
-          endTime: value.endTime, // Assuming `endTime` exists
-        }));
+    const examIds = Object.keys(snapshot.val());
 
-        return examsList; // Return the array with all required details
-      } else {
-        console.log('No exams found for this user.');
-        return [];
-      }
-    } catch (error) {
-      console.error('Error fetching exam data:', error);
-      return [];
-    }
-  };
+    const examsData = await Promise.all(
+      examIds.map(async (examId) => {
+        const examRef = ref(database, `exams/${examId}`);
+        const examSnap = await get(examRef);
+
+        if (!examSnap.exists()) return null;
+
+        const data = examSnap.val();
+
+        return {
+          id: examId,
+          title: data.title || "Untitled",
+          description: data.description,
+          endTime: data.endTime,
+        };
+      })
+    );
+
+    return examsData.filter(Boolean);
+
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+};
 
 
 
   // Function to fetch exams taken by the user
 const fetchExamsTakenByUser = async (userId) => {
   try {
-    const examsRef = ref(database, `Users/${userId}/exams`);
-    const snapshot = await get(examsRef);
+    const attemptsRef = ref(database, `examAttempts`);
+    const snapshot = await get(attemptsRef);
 
-    if (snapshot.exists()) {
-      const examsData = snapshot.val();
+    if (!snapshot.exists()) return [];
 
-      // Extract only `maxScored`, `examId`, and `email` under `userDetails`
-      const examsList = Object.entries(examsData).map(([key, value]) => ({
-        examId: value.examId,
-        maxScored: value.maxScored,
-        email: value.userDetails?.email || 'N/A',
+    const data = snapshot.val();
+
+    return Object.values(data)
+      .filter(a => a.userId === userId)
+      .map(a => ({
+        examId: a.examId,
+        examTitle: a.examTitle,
+        score: a.score,
+        cheating: a.cheating,
+        timestamp: a.timestamp,
+        attemptId: a.attemptId,
       }));
 
-      return examsList; // Return the array with all required details
-    } else {
-      console.log('No exams taken by this user.');
-      return [];
-    }
-  } catch (error) {
-    console.error('Error fetching exams taken:', error);
+  } catch (err) {
+    console.error(err);
     return [];
   }
 };
+
 useEffect(() => {
   const getExams = async () => {
     if (userId) {
@@ -104,320 +121,138 @@ useEffect(() => {
     return () => unsubscribe(); // Cleanup on component unmount
   }, []);
 
-  useEffect(() => {
-    const getExams = async () => {
-      if (userId && activeTab === 'examsCreated') {
-        const examsData = await fetchExamsCreatedByUser(userId);
-        setExams(examsData);
-      } else {
-        setExams([]); // Clear exams data for other tabs
-      }
-    };
-
-    getExams();
-  }, [userId, activeTab]);
-
-
   // Fetch results from the directory
-  const fetchResults = async (examId) => {
-    try {
-      const resultsRef = ref(database, `/Users/${userId}/exams/${examId}/attempts/`);
-      const snapshot = await get(resultsRef);
-  
-      if (snapshot.exists()) {
-        const resultsData = snapshot.val();
-  
-        // Convert the resultsData into an array of key-value pairs
-        const entries = Object.entries(resultsData);
-  
-        if (entries.length > 0) {
-          // Take the first sub-object as the initial result
-          const firstResult = {
-            attempt: entries[0][0], // Key of the first attempt
-            timestamp: entries[0][1]?.timestamp || 'N/A',
-            score: entries[0][1]?.marks || 'N/A',
-          };
-  
-          // Iterate over the rest of the entries for other attempts
-          const otherResults = entries.slice(1).map(([key, value]) => ({
-            attempt: key,
-            timestamp: value.timestamp || 'N/A',
-            score: value.marks || 'N/A',
-          }));
-  
-          // Combine the first result and other results into a single array
-          const formattedResults = [firstResult, ...otherResults];
-          setResults(formattedResults);
-        } else {
-          console.log('No results found.');
-          setResults([]);
-        }
-      } else {
-        console.log('No results found.');
-        setResults([]);
-      }
-    } catch (error) {
-      console.error('Error fetching results:', error);
-    }
-  };
-  
-  // Fetch exams based on active tab
-  const fetchExams = async () => {
-    if (userId) {
-      if (activeTab === 'examsCreated') {
-        // Fetch exams created by the user
-        const examsRef = ref(database, `exams/${userId}`);
-        const snapshot = await get(examsRef);
-        if (snapshot.exists()) {
-          const examsData = snapshot.val();
-          const examsList = Object.entries(examsData).map(([key, value]) => ({
-            id: key,
-            title: value.title,
-            description: value.description,
-            endTime: value.endTime,
-          }));
-          setExams(examsList);
-        }
-      } else if (activeTab === 'examsTaken') {
-        // Fetch exams taken by the user
-        const examsRef = ref(database, `Users/${userId}/exams`);
-        const snapshot = await get(examsRef);
-        if (snapshot.exists()) {
-          const examsData = snapshot.val();
-          const examsList = Object.entries(examsData).map(([key, value]) => ({
-            examId: value.examId,
-            maxScored: value.maxScored,
-            email: value.userDetails?.email || 'N/A',
-          }));
-          setExams(examsList);
-        }
-      }
-    }
-  };
+const fetchResults = async (examId) => {
+  try {
+    const attemptsRef = ref(database, `examAttempts`);
+    const snapshot = await get(attemptsRef);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-        setLoading(false);
-      } else {
-        console.error('No user logged in');
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (!snapshot.exists()) {
+      setResults([]);
+      return;
+    }
 
-  useEffect(() => {
-    fetchExams();
-  }, [userId, activeTab]);
+    const data = snapshot.val();
+
+    const filtered = Object.values(data)
+      .filter(a => a.examId === examId && a.userId === userId)
+      .map(a => ({
+        attempt: a.attemptId,
+        timestamp: a.timestamp || "N/A",
+        score: a.score || 0,
+      }));
+
+    setResults(filtered);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
   const handleViewScores = (examId) => {
     fetchResults(examId);
     setShowModal(true);
   };
   
+const handleViewCandidates = async (examId) => {
+  try {
+    const snapshot = await get(ref(database, `examAttempts`));
+    if (!snapshot.exists()) return;
 
+    const data = snapshot.val();
 
-  const handleViewCandidates = async (examId) => {
-    const db = getDatabase();
-    const resultRef = ref(db, `exams/${userId}/${examId}/results`);
-    
-    try {
-      const snapshot = await get(resultRef);
-      if (snapshot.exists()) {
-        const results = snapshot.val();
-        const candidates = Object.values(results).map(result => ({
-          email: result.email,
-          maxScored: result.maxScored,
-          candidateId: result.candidateId // Assuming candidateId is part of the result
-        }));
-        
-        // Sort candidates in decreasing order of maxScored
-        candidates.sort((a, b) => b.maxScored - a.maxScored);
-        
-        // Display results
-        console.log("Candidates List: ", candidates);
-        displayCandidates(candidates, examId);
-      } else {
-        console.log("No results found");
-      }
-    } catch (error) {
-      console.error("Error retrieving data:", error);
-    }
-  };
-  
- // Display function to render the data 
-const displayCandidates = (candidates, examId) => {
-  const container = document.getElementById("candidatesList");
-  container.innerHTML = ""; // Clear previous content
+    const filtered = Object.values(data)
+      .filter(a => a.examId === examId)
+      .map(a => ({
+        userId: a.userId,
+        email: a.email || "N/A",
+        score: a.score,
+        cheating: a.cheating,
+        attemptId: a.attemptId,
+      }))
+      .sort((a, b) => b.score - a.score);
 
-  candidates.forEach(({ email, maxScored, candidateId }) => {
-    const candidateDiv = document.createElement("div");
-    candidateDiv.className = "flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow-lg mb-4"; // Tailwind styling for beautiful cards
-    candidateDiv.innerHTML = `
-      <div class="flex items-center space-x-4">
-        <div class="font-semibold text-lg">${email}</div>
-        <div class="text-sm text-gray-600">Score: ${maxScored}</div>
-      </div>
-      <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700" id="showDetails-${candidateId}">More Details</button>
-    `;
-    container.appendChild(candidateDiv);
+    setCandidates(filtered);
+    setSelectedExamId(examId);
+    setShowCandidatesModal(true);
 
-    // Attach event listener after creating the button
-    document.getElementById(`showDetails-${candidateId}`).addEventListener('click', () => {
-      showMoreDetails(candidateId, examId);
-    });
-  });
+  } catch (err) {
+    console.error(err);
+  }
 };
+  
+
 
 // Function to show More Details popup
-const showMoreDetails = async (candidateId, examId) => {
-  const db = getDatabase();
-  console.log(candidateId);
-  console.log(userId);
-  const attemptsRef = ref(db, `exams/${userId}/${examId}/results/${candidateId}/attempts`);
-
+const showMoreDetails = async (candidate) => {
   try {
-    const snapshot = await get(attemptsRef);
-    if (snapshot.exists()) {
-      const attempts = snapshot.val();
-      const modalContent = document.getElementById("modalContent");
-      modalContent.innerHTML = ""; // Clear previous modal content
+    const { userId, attemptId } = candidate;
+    const basePath = `proctoring/${selectedExamId}/${userId}/${attemptId}`;
 
-      // Convert attempts object to an array for mapping
-      const attemptArray = Object.keys(attempts).map((key) => ({
-        id: key,
-        marks: attempts[key].marks,
-        timestamp: attempts[key].timestamp,
-      }));
+    const [violSnap, imgSnap] = await Promise.all([
+      get(ref(database, `${basePath}/violations`)),
+      get(ref(database, `${basePath}/snapshots`)),
+    ]);
 
-      // Use map() to iterate over the attempts array
-      attemptArray.map((attempt) => {
-        const attemptCard = document.createElement("div");
-        attemptCard.className = "bg-white p-4 rounded-lg shadow-md mb-4"; // Tailwind styling for cards
-        attemptCard.innerHTML = `
-          <div class="font-semibold text-xl">Attempt ${attempt.id}</div>
-          <div class="text-gray-700">Score: ${attempt.marks}</div>
-          <div class="text-sm text-gray-600">Date: ${attempt.timestamp}</div>
-          
-        `;
-
-const button = document.createElement("button");
-button.className = "bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-700";
-button.textContent = "View Candidates with Images";
-button.addEventListener("click", () => handleViewCandidatesWithImages(examId));
-
-
-attemptCard.appendChild(button);
-        modalContent.appendChild(attemptCard);
-      });
-
-      // Show the modal
-      document.getElementById("attemptsModal").style.display = "block";
-    } else {
-      console.log("No attempts found for this candidate");
-    }
-  } catch (error) {
-    console.error("Error retrieving attempts:", error);
-  }
-};
-
-const fetchCandidateImages = async (examId) => {
-  try {
-    const imagesRef = ref(database, `exams/${userId}/${examId}/results`);
-    const snapshot = await get(imagesRef);
-
-    if (snapshot.exists()) {
-      const results = snapshot.val();
-
-      // Extract and format candidate image data
-      const candidatesWithImages = Object.values(results).map((result) => ({
-        email: result.email,
-        maxScored: result.maxScored,
-        candidateId: result.candidateId,
-        imageUrl: result.imageUrl || null, // Assuming imageUrl is stored in the result
-      }));
-
-      // Display the candidates with their images
-      displayCandidatesWithImages(candidatesWithImages, examId);
-    } else {
-      console.log("No candidate images found");
-    }
-  } catch (error) {
-    console.error("Error fetching candidate images:", error);
-  }
-};
-
-// Function to display candidates with their images
-const displayCandidatesWithImages = (candidates, examId) => {
-  const container = document.getElementById("candidatesList");
-  container.innerHTML = ""; // Clear previous content
-
-  candidates.forEach(({ email, maxScored, candidateId, imageUrl }) => {
-    const candidateDiv = document.createElement("div");
-    candidateDiv.className = "flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-lg mb-4";
-
-    candidateDiv.innerHTML = `
-      <div class="flex items-center space-x-4">
-        ${imageUrl ? `<img src="${imageUrl}" alt="Candidate Image" class="w-16 h-16 rounded-full" />` : ""}
-        <div>
-          <div class="font-semibold text-lg">${email}</div>
-          <div class="text-sm text-gray-600">Score: ${maxScored}</div>
-        </div>
-      </div>
-      <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700" id="showDetails-${candidateId}">
-        More Details
-      </button>
-    `;
-
-    container.appendChild(candidateDiv);
-
-    // Attach event listener for more details
-    document.getElementById(`showDetails-${candidateId}`).addEventListener("click", () => {
-      showMoreDetails(candidateId, examId);
+    setCandidateDetails({
+      violations: violSnap.exists() ? violSnap.val() : {},
+      images: imgSnap.exists() ? Object.values(imgSnap.val()) : [],
     });
-  });
+
+    setShowDetailsModal(true);
+
+  } catch (err) {
+    console.error(err);
+  }
 };
 
+const calculateRisk = (violations) => {
+  const face = violations.faceIssue || 0;
+  const head = violations.headMovement || 0;
+  const live = violations.livenessFail || 0;
+  const tab = violations.tab_switch || 0;
 
-const handleViewCandidatesWithImages = (examId) => {
-  fetchCandidateImages(examId);
+  // weighted scoring (not random — intentional)
+  const score =
+    face * 3 +     // serious
+    head * 2 +     // moderate
+    live * 3 +     // serious
+    tab * 1;       // minor
+
+  if (score >= 10) return { level: "HIGH", color: "text-red-600" };
+  if (score >= 5) return { level: "MEDIUM", color: "text-yellow-500" };
+  return { level: "LOW", color: "text-green-600" };
 };
 
-// Close modal
-const closeModal = () => {
-  document.getElementById("attemptsModal").style.display = "none";
+const handleViewReport = async (exam) => {
+  try {
+    const { examId, attemptId } = exam;
+
+    const basePath = `proctoring/${examId}/${userId}/${attemptId}`;
+
+    const [violSnap, imgSnap] = await Promise.all([
+      get(ref(database, `${basePath}/violations`)),
+      get(ref(database, `${basePath}/snapshots`)),
+    ]);
+
+    const violations = violSnap.exists() ? violSnap.val() : {};
+    const images = imgSnap.exists() ? Object.values(imgSnap.val()) : [];
+
+
+    setReportData({ violations, images });
+    setShowReportModal(true);
+
+  } catch (err) {
+    console.error("Error fetching report:", err);
+  }
 };
-
-// HTML structure for the modal
-const modalHTML = `
-<div className="flex  items-center justify-center">
-  <div id="attemptsModal" class="fixed pt-36 pl-28 inset-0 bg-gray-500 bg-opacity-75  hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-      <div id="modalContent"></div>
-      <div class="flex justify-end space-x-4 mt-4">
-        <button id="cancelButton" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700">Cancel</button>
-        <button id="okButton" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700">OK</button>
-      </div>
-    </div>
-  </div>
-  </div>
-`;
-
-// Add the modal to the DOM
-document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-// Attach event listeners to modal buttons
-document.getElementById("cancelButton").addEventListener("click", closeModal);
-document.getElementById("okButton").addEventListener("click", closeModal);
-
-// Other functions like handleViewCandidates, displayCandidates, and showMoreDetails remain the same
-
 
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  const risk = reportData ? calculateRisk(reportData.violations) : null;
 
   return (
     <div className="w-full">
@@ -477,7 +312,7 @@ document.getElementById("okButton").addEventListener("click", closeModal);
               <h3 className="text-gray-600">{exam.description}</h3>
               <p className="text-sm text-gray-500">End Time: {exam.endTime}</p>
               <button
-                onClick={() => handleViewCandidates(exam.title)}
+                onClick={() => handleViewCandidates(exam.id)}
                 className="px-6 py-2 bg-purple-500 text-white rounded-lg shadow-md mt-2"
               >
                 View Candidate
@@ -496,9 +331,10 @@ document.getElementById("okButton").addEventListener("click", closeModal);
         <ul>
           {exams.map((exam, index) => (
             <li key={index} className="mb-4 border-b pb-2">
-              <h1 className="font-semibold text-lg">Exam ID: {exam.examId}</h1>
-              <h3 className="text-gray-600">Max Scored: {exam.maxScored}</h3>
-              <p className="text-sm text-gray-500">Email: {exam.email}</p>
+              <h1 className="font-semibold text-lg">Exam Name: {exam.examTitle}</h1>
+              <h3 className="text-gray-600">Score: {exam.score}</h3>
+              {/* <p className="text-sm text-gray-500">Exam: {exam.examTitle}</p> */}
+              <p className="text-sm text-gray-400">Time: {exam.timestamp}</p>
               <div className="flex justify-between mt-6">
                 <button
                   onClick={() => (window.location.href = '/exams')}
@@ -507,10 +343,10 @@ document.getElementById("okButton").addEventListener("click", closeModal);
                   Reattempt
                 </button>
                 <button
-                  onClick={() => handleViewScores(exam.examId)}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md"
-                >
-                  View Scores
+                  onClick={() => handleViewReport(exam)}
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg shadow-md"
+                  >
+                    View Proctoring Report
                 </button>
               </div>
             </li>
@@ -529,35 +365,131 @@ document.getElementById("okButton").addEventListener("click", closeModal);
 <div id="candidatesList" className="mt-4"></div>
 
 
-{showModal && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-1/2">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Exam Results</h2>
-              <button onClick={() => setShowModal(false)} className="text-red-500 font-bold">
-                X
-              </button>
-            </div>
-            <div className="space-y-4">
-              {results.map((result, index) => (
-                <div key={index} className="border p-4 rounded-lg">
-                  <p>Timestamp: {result.timestamp}</p><br></br>
-                  <p>Score: {result.score}</p>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-6 px-6 py-2 bg-green-500 text-white rounded-lg"
-            >
-              OK
-            </button>
+{showCandidatesModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white w-[600px] p-6 rounded-xl shadow-xl max-h-[80vh] overflow-y-auto">
+
+      <h2 className="text-2xl font-bold mb-4">Candidates</h2>
+
+      {candidates.map((c, i) => (
+        <div key={i} className="flex justify-between items-center p-3 border rounded-lg mb-2">
+          <div>
+            <p className="font-semibold">{c.email}</p>
+            <p className="text-sm text-gray-500">Score: {c.score}</p>
           </div>
+
+          <button
+            onClick={() => showMoreDetails(c)}
+            className="bg-blue-500 text-white px-3 py-1 rounded"
+          >
+            Details
+          </button>
         </div>
-      )}
+      ))}
+
+      <button
+        onClick={() => setShowCandidatesModal(false)}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
+{showDetailsModal && candidateDetails && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white w-[700px] p-6 rounded-xl shadow-xl max-h-[80vh] overflow-y-auto">
+
+      <h2 className="text-xl font-bold mb-4">Details</h2>
+
+      {/* Violations */}
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Violations</h3>
+        <p>Face: {candidateDetails.violations.faceIssue || 0}</p>
+        <p>Head: {candidateDetails.violations.headMovement || 0}</p>
+        <p>Liveness: {candidateDetails.violations.livenessFail || 0}</p>
+        <p>Tab Switch: {candidateDetails.violations.tab_switch || 0}</p>
+      </div>
+
+      {/* Images */}
+      <div>
+        <h3 className="font-semibold mb-2">Snapshots</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {candidateDetails.images.map((img, i) => (
+            <img key={i} src={img.url} className="rounded w-full h-24 object-cover" />
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={() => setShowDetailsModal(false)}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
 
 
-      {/* <Footer /> */}
+{showReportModal && reportData && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white w-[700px] p-6 rounded-xl shadow-xl max-h-[80vh] overflow-y-auto">
+
+      <h2 className="text-xl font-bold mb-4">Proctoring Report</h2>
+
+      <div className="mb-4 p-4 rounded-lg bg-gray-100">
+        <h3 className="text-lg font-bold">
+          Risk Level: <span className={`px-3 py-1 rounded-full text-white ${risk.level === "HIGH"
+                  ? "bg-red-500"
+                  : risk.level === "MEDIUM"
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+                }`}>
+  {risk.level}
+</span>
+        </h3>
+      </div>
+
+      {/* Violations */}
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Violations</h3>
+        <p>Face Issues: {reportData.violations.faceIssue || 0}</p>
+        <p>Head Movement: {reportData.violations.headMovement || 0}</p>
+        <p>Liveness Fails: {reportData.violations.livenessFails || 0}</p>
+        <p>Tab Switch: {reportData.violations.tab_switch || 0}</p>
+      </div>
+
+      {/* Images */}
+      <div>
+        <h3 className="font-semibold mb-2">Snapshots</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {reportData.images.length > 0 ? (
+            reportData.images.map((img, i) => (
+              <img
+                key={i}
+                src={img.url}
+                className="rounded w-full h-24 object-cover"
+              />
+            ))
+          ) : (
+            <p>No snapshots available</p>
+          )}
+        </div>
+      </div>
+
+      <button
+        onClick={() => setShowReportModal(false)}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
+       <Footer /> 
     </div>
   );
 };

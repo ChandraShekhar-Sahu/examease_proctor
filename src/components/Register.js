@@ -4,12 +4,16 @@ import { auth, database } from "./firebase";
 import { ref, set } from "firebase/database";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
+  const navigate = useNavigate();
+  const createdAt = new Date().toISOString();
+
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -32,6 +36,8 @@ function Register() {
         email: user.email,
         firstName: fname,
         lastName: lname,
+        role:"User",
+        createdAt: createdAt,
         sessionKey: sessionKey,
         exams: [], // Initialize with an empty array for exams
       });
@@ -48,7 +54,7 @@ function Register() {
       });
 
       // Redirect to the profile page after registration
-      window.location.href = "/profile";
+      navigate("/profile");
     } catch (error) {
       // Handle registration errors
       console.error("Registration Error:", error.message);
@@ -60,7 +66,7 @@ function Register() {
 
   return (
     <form onSubmit={handleRegister}>
-      <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+      <div className="min-h-screen bg-blue-100 py-6 flex flex-col justify-center sm:py-12">
         <div className="relative py-3 sm:max-w-xl sm:mx-auto">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-sky-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
           <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
@@ -96,6 +102,7 @@ function Register() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  
                   <div className="relative">
                     <button
                       type="submit"
