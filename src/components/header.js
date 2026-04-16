@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase"; // Replace with your actual Firebase config file path
 import { Link } from "react-router-dom"; // Import Link from react-router-dom for navigation
-// import { div } from "framer-motion";
+
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
